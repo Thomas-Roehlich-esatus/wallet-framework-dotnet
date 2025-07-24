@@ -52,4 +52,17 @@ public static class SessionEstablishmentFun
             from key in eReaderKey
             select new SessionEstablishment(key.Value, encrypted);
     }
+
+    public static Validation<PublicKey> GetPubKeyFromCbor(CBORObject sessionEstablishmentCbor)
+    {
+        var eReaderKey = sessionEstablishmentCbor.GetByLabel("eReaderKey").OnSuccess(dataCbor =>
+        {
+            var eReaderKey = CoseKey.FromCborBytes(dataCbor);
+
+            return eReaderKey.IsSuccess ? eReaderKey : new SessionEstablishmentError();
+        });
+        return
+            from key in eReaderKey
+            select key.Value;
+    }
 }
