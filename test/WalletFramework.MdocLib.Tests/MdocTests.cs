@@ -1,9 +1,14 @@
 using FluentAssertions;
 using Microsoft.IdentityModel.Tokens;
 using PeterO.Cbor;
+using WalletFramework.Core.Cryptography.Models;
 using WalletFramework.Core.Functional;
+using WalletFramework.MdocLib.Ble;
+using WalletFramework.MdocLib.Device;
 using WalletFramework.MdocLib.Digests;
 using WalletFramework.MdocLib.Elements;
+using WalletFramework.MdocLib.Reader;
+using WalletFramework.MdocLib.Security;
 using WalletFramework.MdocLib.Security.Cose;
 using Xunit;
 using static WalletFramework.MdocLib.Mdoc;
@@ -214,5 +219,36 @@ public class MdocTests
             _ => Assert.Fail("Mdoc must invalid"),
             sut => { }
         );
+    }
+    
+    [Fact]
+    public void ReaderEngagement_FromCbor_ParseUuid()
+    {
+        string readerEngagementString = "mdoc:owBjMS4wAYIBWEukAQIgASFYIAzmfM6jnU5N8L1VhbtQytfESDQL7_Mmlq_jnkYzAxY2Ilgg_jMY7TQNmeLSH-jLefs83jOagtX--0UoeKmajz0iq0ICgYMCAaMA9AH1C1B2NDoEfVOySq7XukdfIttv";
+        string expectedServiceUuid = "043A3476-537D-4AB2-AED7-BA475F22DB6F";
+        Validation<EngagementUri> uri = EngagementUri.FromString(readerEngagementString);
+        EngagementUri validUri = uri.Match(uriInt => uriInt,
+            error => throw new ArgumentException($"Invalid ReaderEngagement URI: {error}"));
+        Validation<ReaderEngagement> engagement = ReaderEngagement.FromEngagementUri(validUri);
+        
+        engagement.IsFail.Should().BeFalse();
+        engagement.IsSuccess.Should().BeTrue();
+        engagement.UnwrapOrThrow().DeviceRetrievalMethods.First().RetrievalOptions.Client2ServerUuid
+            .UnwrapOrThrow().ToString().ToUpper().Should().Be(expectedServiceUuid);
+    }
+    
+    [Fact]
+    public void ReaderEngagement_ToCbor_UuidIsByteString()
+    {
+        EcKeyPairGenerator ecKeyPairGenerator = new();
+        EngagementSecurity engagementSecurity = new(CoseEllipticCurves.P256, ecKeyPairGenerator.GetPublicKey().ToPubKey().ToCoseKey());
+        DeviceRetrievalMethod deviceRetrievalMethod = new(BleRetrievalOptionsFun.BleRetrievalOptionForCentral);
+        ReaderEngagement engagement = new(engagementSecurity,[deviceRetrievalMethod]);
+        string uri = engagement.ToQrCodeValue();
+        
+        engagement.DeviceRetrievalMethods.First().RetrievalOptions.Client2ServerUuid
+            .IsSome.Should().BeTrue();
+        CBORObject uuidCbor = engagement.DeviceRetrievalMethods.First().RetrievalOptions.Client2ServerUuid.UnwrapOrThrow().ToCbor();
+        uuidCbor.Type.Should().Be(CBORType.ByteString);
     }
 }

@@ -37,6 +37,12 @@ public readonly struct BleUuid
             return new CborIsNotAByteStringError(name, e);
         }
     }
+
+    public CBORObject ToCbor()
+    {
+        var bytes = Guid.Parse(Value).ToByteArray();
+        return CBORObject.FromObject(bytes);
+    }
 }    
 
 public static class BleUuidFun
