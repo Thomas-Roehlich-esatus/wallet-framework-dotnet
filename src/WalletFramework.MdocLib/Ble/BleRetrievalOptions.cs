@@ -26,13 +26,13 @@ public record BleRetrievalOptions(
         Server2ClientUuid.IfSome(uuid =>
         {
             var serverUuidLabel = CBORObject.FromObject(10);
-            result.Add(serverUuidLabel, CBORObject.FromObject(uuid));
+            result.Add(serverUuidLabel, uuid.ToCbor());
         });
         
         Client2ServerUuid.IfSome(uuid =>
         {
             var clientUuidLabel = CBORObject.FromObject(11);
-            result.Add(clientUuidLabel, CBORObject.FromObject(uuid));
+            result.Add(clientUuidLabel, uuid.ToCbor());
         });
         
         return result;
