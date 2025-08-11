@@ -83,7 +83,7 @@ public static class ReaderEngagementFun
         var retrievalMethod = readerEngagement
             .DeviceRetrievalMethods
             .Single(method => method.TargetedConnection == 2);
-
+        
         return retrievalMethod.RetrievalOptions.Server2ClientUuid.UnwrapOrThrow(
             new InvalidOperationException("Server2ClientUuid must have a value when ReaderEngagement is used"));
     }
