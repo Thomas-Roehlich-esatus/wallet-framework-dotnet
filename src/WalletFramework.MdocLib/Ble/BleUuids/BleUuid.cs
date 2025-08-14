@@ -29,8 +29,7 @@ public readonly struct BleUuid
     {
         try
         {
-            var uuid = new Guid(cbor.GetByteString());
-            return new BleUuid(uuid.ToString());
+            return new BleUuid(BleUuidFun.CborMdlUuidToString(cbor));
         }
         catch (Exception e)
         {
@@ -52,4 +51,19 @@ public static class BleUuidFun
         var random = Guid.NewGuid();
         return BleUuid.FromString(random.ToString()).UnwrapOrThrow();
     }
+
+    public static string CborMdlUuidToString(CBORObject cborUuid)
+    {
+        var bytes = cborUuid.GetByteString();
+        if (bytes.Length != 16)
+            throw new ArgumentException("UUID must be exactly 16 bytes.");
+
+        // Swap RFC → Guid byte order
+        Array.Reverse(bytes, 0, 4);
+        Array.Reverse(bytes, 4, 2);
+        Array.Reverse(bytes, 6, 2);
+
+        return new Guid(bytes).ToString();
+    }
+
 }
