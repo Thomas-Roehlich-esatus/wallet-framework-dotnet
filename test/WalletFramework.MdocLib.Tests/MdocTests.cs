@@ -225,7 +225,7 @@ public class MdocTests
     public void ReaderEngagement_FromCbor_ParseUuid()
     {
         string readerEngagementString = "mdoc:owBjMS4wAYIBWEukAQIgASFYIAzmfM6jnU5N8L1VhbtQytfESDQL7_Mmlq_jnkYzAxY2Ilgg_jMY7TQNmeLSH-jLefs83jOagtX--0UoeKmajz0iq0ICgYMCAaMA9AH1C1B2NDoEfVOySq7XukdfIttv";
-        string expectedServiceUuid = "043A3476-537D-4AB2-AED7-BA475F22DB6F";
+        var expectedServiceUuid = "76343A04-7D53-B24A-AED7-BA475F22DB6F";
         Validation<EngagementUri> uri = EngagementUri.FromString(readerEngagementString);
         EngagementUri validUri = uri.Match(uriInt => uriInt,
             error => throw new ArgumentException($"Invalid ReaderEngagement URI: {error}"));
